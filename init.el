@@ -28,21 +28,12 @@
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
 (package-initialize)
 
-(when (memq system-type '(windows-nt))
-  (setq explicit-shell-file-name "c:/cygwin64/bin/bash.exe")
-  (setq explicit-sh-args '("-login" "-i"))
-  (setq shell-file-name explicit-shell-file-name)
-  (add-to-list 'exec-path "c:/cygwin64/bin/")
-  (add-to-list 'exec-path "c:/ProgramData/Anaconda3/")
-  (setq default-directory "~/")
-  )
 
 (when (memq window-system '(mac ns))
   ;; use terminal path in OSX GUI app
   ;; (exec-path-from-shell-initialize)
   (setq font-backend 'ns)
   )
-;;(exec-path-from-shell-initialize)
 
 ;; Bootstrap use-package
 (unless (package-installed-p 'use-package)
@@ -52,6 +43,8 @@
 (eval-when-compile
   (require 'use-package))
 
+(use-package exec-path-from-shell
+  :ensure t)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -61,7 +54,7 @@
 
 ;; when running emacs as a daemon, certain themes fail to load properly.
 ;; this code will check for this and load theme after a frame is created
-(setq my-theme 'zerodark)
+(setq my-theme 'spacemacs-dark)
 
 (defun load-my-theme (frame)
   (select-frame frame)
@@ -137,14 +130,14 @@
 ;; Apply font settings
 (if (memq window-system '(mac ns))
   ;; for macs
-  (set-fonts "Source Code Pro"
+  (set-fonts "Fira Code Retina"
              ;; "Helvetica Neue"
-             "Source Code Pro"
+             "Fira Code Retina"
              14)
   ;; for linux
-  (set-fonts "Source Code Pro"
-             "Source Code Pro"
-             12))
+  (set-fonts "Fira Code Retina"
+             "Fira Code Retina"
+             13))
 
 
 
@@ -157,7 +150,7 @@
 (blink-cursor-mode 0)
 
 ;; highlight current line
-(global-hl-line-mode 1)
+;; (global-hl-line-mode 1)
 
 ;; disable toolbar menubar and scrollbar
 (tool-bar-mode -1)
@@ -198,6 +191,10 @@
 
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Tramp settings
+(setq tramp-default-method "ssh")
+(customize-set-variable 'tramp-syntax 'simplified)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -238,7 +235,7 @@
 (add-hook 'text-mode-hook (lambda () (set-fill-column 79)))
 
 ;; dont soft wrap lines
-;;(setq 'truncate-lines t)
+(set-default 'truncate-lines t)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -326,30 +323,31 @@
   :config (key-chord-mode 1))
 
 
+(use-package vterm
+  :ensure t)
+
+(use-package multi-vterm
+  :ensure t)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Multi Term
-(use-package multi-term
-  :ensure t
-  :after evil
-  :config
+;; (use-package multi-term
+;;   :ensure t
+;;   :after evil
+;;   :config
   
-(if (memq system-type '(windows-nt))
-    (setq multi-term-program "usr/bin/bash")
-  (setq multi-term-program "/bin/bash"))
+;;   ;; bring focus to terminal window after opening
+;;   (setq multi-term-dedicated-select-after-open-p t)
 
-  ;; bring focus to terminal window after opening
-  (setq multi-term-dedicated-select-after-open-p t)
+;;   ;; Fix pasting into terminal
+;;   (evil-define-key 'normal term-raw-map "p" 'term-paste)
+;;   (evil-define-key 'insert term-raw-map (kbd "s-v") 'term-paste)
 
-  ;; Fix pasting into terminal
-  (evil-define-key 'normal term-raw-map "p" 'term-paste)
-  (evil-define-key 'insert term-raw-map (kbd "s-v") 'term-paste)
-
-  ;; fix terminal tab completions
-  (add-hook 'term-mode-hook (lambda()
-                              (setq yas-dont-activate t)))
-  (add-hook 'prog-mode-hook (lambda()
-                              (setq yas-dont-activate nil))))
+;;   ;; fix terminal tab completions
+;;   (add-hook 'term-mode-hook (lambda()
+;;                               (setq yas-dont-activate t)))
+;;   (add-hook 'prog-mode-hook (lambda()
+;;                               (setq yas-dont-activate nil))))
 
 
 
@@ -363,6 +361,9 @@
   :after key-chord
   :config
   (evil-mode t)
+
+  (global-undo-tree-mode)
+  (evil-set-undo-system 'undo-tree)
 
   ;; remap the <space> key to :
   (define-key evil-normal-state-map (kbd "SPC") 'evil-ex)
@@ -393,14 +394,11 @@
   ;; mapping for helm-find-files
   (evil-leader/set-key "f" 'helm-find-files)
 
-  ;; mapping for helm-dash
-  (evil-leader/set-key "d" 'helm-dash)
-
   ;; toggle line numbers
   (evil-leader/set-key "n" 'display-line-numbers-mode)
 
   ;; open shell buffer
-  (evil-leader/set-key "s" 'multi-term-dedicated-toggle)
+  (evil-leader/set-key "s" 'multi-vterm-dedicated-toggle)
 
   ;; highlight thing mode
   (evil-leader/set-key "t" 'highlight-thing-mode))
@@ -520,7 +518,6 @@
           (lambda() (setq flyckeck-clang-include-path
                           (list "/usr/local/Cellar/opencv3/3.1.0_1/include"))))
 
-;; (setq flycheck-python-pycompile-executable "python3")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -543,22 +540,16 @@
   (add-hook 'after-init-hook 'global-company-mode)
 
   ;; documentation popups on idle
-  (company-quickhelp-mode 1)
+  (use-package company-quickhelp
+    :ensure t
+    :init
+    (company-quickhelp-mode 1))
 
   ;;makes completion start automatically rather than waiting for 3 chars / 0.5sec
   (setq company-minimum-prefix-length 1)
-  (setq company-idle-delay 0)
+  (setq company-idle-delay 0))
 
 
-  ;; setup python (jedi) backend
-  ;; (add-hook 'python-mode-hook
-  ;;           '(lambda () (add-to-list 'company-backends 'company-jedi)))
-  (use-package company-anaconda
-    :ensure t
-    :diminish t
-    :config
-    (add-to-list 'company-backends 'company-anaconda))
-  )
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -598,33 +589,25 @@
                    (set (make-local-variable 'compile-command)
                         (concat "python3 "
                                 (file-relative-name buffer-file-name)))))
-
-(use-package anaconda-mode
+(use-package elpy
   :ensure t
-  :diminish t
+  :init
+  (elpy-enable)
   :config
-  (add-hook 'python-mode-hook 'anaconda-mode)
-  (add-hook 'python-mode-hook 'anaconda-eldoc-mode)
+  (when (load "flycheck" t t)
+    (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
+    (add-hook 'elpy-mode-hook 'flycheck-mode))
   )
 
 
-;; Virtual environment handling in emacs
-;; (use-package pyenv-mode
-;;   :ensure t
-;;   :config
-;;   (pyenv-mode))
+
+
 
 (use-package conda
   :ensure t
   :config
   (setq conda-anaconda-home "~/anaconda3/")
   (conda-env-initialize-interactive-shells))
-;; (use-package pyvenv
-;;   :ensure t
-;;   :init
-;;   (setenv "WORKON_HOME" "/home/murad/anaconda3/envs")
-;;   (pyvenv-mode t)
-;;   (pyvenv-tracking-mode t))
 
 ;; ipython notebooks
 (use-package ein
@@ -635,29 +618,33 @@
   :ensure t
   :diminish t)
 
+;; snakemake syntax
+(use-package snakemake-mode
+  :ensure t)
+
 
 
 ;;; MATLAB settings
 ;; (load-library "matlab-load")
+;; (use-package matlab
+;;   :ensure t
+;;   :config
+;;   (setq matlab-shell-command-switches '("-nodesktop -nosplash"))
 
-(use-package matlab
-  :config
-  (setq matlab-shell-command-switches '("-nodesktop -nosplash"))
+;;   (setq auto-mode-alist
+;;         (cons '("\\.m$" . matlab-mode) auto-mode-alist))
 
-  (setq auto-mode-alist
-        (cons '("\\.m$" . matlab-mode) auto-mode-alist))
+;;   (add-hook 'matlab-mode-hook
+;;             '(lambda ()
+;;                (setq matlab-functions-have-end 1)))
 
-  (add-hook 'matlab-mode-hook
-            '(lambda ()
-               (setq matlab-functions-have-end 1)))
+;;   (add-hook 'matlab-mode-hook '(lambda ()
+;;                                  (set-fill-column 79)))
 
-  (add-hook 'matlab-mode-hook '(lambda ()
-                                 (set-fill-column 79)))
-
-  ;; (eval-after-load 'matlab
-  ;;   '(define-key matlab-mode-map (kbd "<f5>") 'matlab-shell-save-and-go))
-  (define-key matlab-mode-map (kbd "<f5>") 'matlab-shell-save-and-go)
-  )
+;;   ;; (eval-after-load 'matlab
+;;   ;;   '(define-key matlab-mode-map (kbd "<f5>") 'matlab-shell-save-and-go))
+;;   (define-key matlab-mode-map (kbd "<f5>") 'matlab-shell-save-and-go)
+;;   )
 
 
 
@@ -666,7 +653,11 @@
 ;;; LaTeX settings
 
 ;; Displays the pdf output of the .tex file in a neighboring split window
-(latex-preview-pane-enable)
+(use-package latex-preview-pane
+  :ensure t
+  :config
+  (latex-preview-pane-enable))
+
 
 (setq latex-run-command "pdflatex")
 
@@ -791,6 +782,8 @@
 ;; Local Variables:
 ;; byte-compile-warnings: (not free-vars)
 ;; End:
+
+(server-start)
 
 (provide 'init)
 ;;; init.el ends here
