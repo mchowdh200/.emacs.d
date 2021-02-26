@@ -46,6 +46,66 @@
 (use-package exec-path-from-shell
   :ensure t)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; evil-mode settings
+;;;; Vim like keybindings in emacs
+
+(setq evil-search-module 'evil-search);; persistent search highlighting
+(use-package evil
+  :ensure t
+  :after key-chord
+  :config
+  (evil-mode t)
+
+  (global-undo-tree-mode)
+  (evil-set-undo-system 'undo-tree)
+
+  ;; remap the <space> key to :
+  (define-key evil-normal-state-map (kbd "SPC") 'evil-ex)
+
+  ;; remap the esc key to exit insert mode
+  (key-chord-define evil-insert-state-map "jk" 'evil-normal-state)
+
+(use-package evil-leader
+  :ensure t
+  :config
+  (global-evil-leader-mode)
+  ;;(evil-leader/set-leader ",")
+  (setq evil-leader/leader ",")
+
+  ;; convenient map for M-x
+  (evil-leader/set-key "m" 'helm-M-x)
+
+  ;; move between windows in a frame
+  (evil-leader/set-key
+    "h" 'evil-window-left
+    "j" 'evil-window-down
+    "k" 'evil-window-up
+    "l" 'evil-window-right)
+
+  ;; toggle map for speedbar
+  (evil-leader/set-key "y" 'sr-speedbar-toggle)
+
+  ;; mapping for helm-find-files
+  (evil-leader/set-key "f" 'helm-find-files)
+
+  ;; toggle line numbers
+  (evil-leader/set-key "n" 'display-line-numbers-mode)
+
+  ;; open shell buffer
+  (evil-leader/set-key "s" 'multi-vterm-dedicated-toggle)
+
+  ;; highlight thing mode
+  (evil-leader/set-key "t" 'highlight-thing-mode))
+
+(use-package evil-commentary
+  :ensure t
+  :diminish evil-commentary-mode
+  :config (evil-commentary-mode))
+
+
+;; TODO Try to implement persistent evil-marks
+)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Themes/Highlighting
@@ -227,12 +287,12 @@
 
 
 ;; hard line wrap at 80 chars
-(set-fill-column 79)
-(add-hook 'prog-mode-hook 'turn-on-auto-fill)
-(add-hook 'prog-mode-hook (lambda () (set-fill-column 79)))
+;; (set-fill-column 79)
+;; (add-hook 'prog-mode-hook 'turn-on-auto-fill)
+;; (add-hook 'prog-mode-hook (lambda () (set-fill-column 79)))
 
-(add-hook 'text-mode-hook 'turn-on-auto-fill)
-(add-hook 'text-mode-hook (lambda () (set-fill-column 79)))
+;; (add-hook 'text-mode-hook 'turn-on-auto-fill)
+;; (add-hook 'text-mode-hook (lambda () (set-fill-column 79)))
 
 ;; dont soft wrap lines
 (set-default 'truncate-lines t)
@@ -324,93 +384,14 @@
 
 
 (use-package vterm
-  :ensure t)
+  :ensure t
+  :config
+  (evil-define-key 'normal vterm-mode-map "P" 'vterm-yank)
+  (evil-define-key 'normal vterm-mode-map "p" 'vterm-yank))
 
 (use-package multi-vterm
   :ensure t)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Multi Term
-;; (use-package multi-term
-;;   :ensure t
-;;   :after evil
-;;   :config
-  
-;;   ;; bring focus to terminal window after opening
-;;   (setq multi-term-dedicated-select-after-open-p t)
-
-;;   ;; Fix pasting into terminal
-;;   (evil-define-key 'normal term-raw-map "p" 'term-paste)
-;;   (evil-define-key 'insert term-raw-map (kbd "s-v") 'term-paste)
-
-;;   ;; fix terminal tab completions
-;;   (add-hook 'term-mode-hook (lambda()
-;;                               (setq yas-dont-activate t)))
-;;   (add-hook 'prog-mode-hook (lambda()
-;;                               (setq yas-dont-activate nil))))
-
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; evil-mode settings
-;;;; Vim like keybindings in emacs
-
-(setq evil-search-module 'evil-search);; persistent search highlighting
-(use-package evil
-  :ensure t
-  :after key-chord
-  :config
-  (evil-mode t)
-
-  (global-undo-tree-mode)
-  (evil-set-undo-system 'undo-tree)
-
-  ;; remap the <space> key to :
-  (define-key evil-normal-state-map (kbd "SPC") 'evil-ex)
-
-  ;; remap the esc key to exit insert mode
-  (key-chord-define evil-insert-state-map "jk" 'evil-normal-state)
-
-(use-package evil-leader
-  :ensure t
-  :config
-  (global-evil-leader-mode)
-  ;;(evil-leader/set-leader ",")
-  (setq evil-leader/leader ",")
-
-  ;; convenient map for M-x
-  (evil-leader/set-key "m" 'helm-M-x)
-
-  ;; move between windows in a frame
-  (evil-leader/set-key
-    "h" 'evil-window-left
-    "j" 'evil-window-down
-    "k" 'evil-window-up
-    "l" 'evil-window-right)
-
-  ;; toggle map for speedbar
-  (evil-leader/set-key "y" 'sr-speedbar-toggle)
-
-  ;; mapping for helm-find-files
-  (evil-leader/set-key "f" 'helm-find-files)
-
-  ;; toggle line numbers
-  (evil-leader/set-key "n" 'display-line-numbers-mode)
-
-  ;; open shell buffer
-  (evil-leader/set-key "s" 'multi-vterm-dedicated-toggle)
-
-  ;; highlight thing mode
-  (evil-leader/set-key "t" 'highlight-thing-mode))
-
-(use-package evil-commentary
-  :ensure t
-  :diminish evil-commentary-mode
-  :config (evil-commentary-mode))
-
-
-;; TODO Try to implement persistent evil-marks
-)
 
 
 
@@ -737,6 +718,11 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Git settings
 (use-package evil-magit
+  :ensure t)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Yaml
+(use-package yaml-mode
   :ensure t)
 
 
