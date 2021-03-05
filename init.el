@@ -70,7 +70,6 @@
   :ensure t
   :config
   (global-evil-leader-mode)
-  ;;(evil-leader/set-leader ",")
   (setq evil-leader/leader ",")
 
   ;; convenient map for M-x
@@ -83,8 +82,11 @@
     "k" 'evil-window-up
     "l" 'evil-window-right)
 
-  ;; toggle map for speedbar
-  (evil-leader/set-key "y" 'sr-speedbar-toggle)
+  ;; magit stuff
+  (evil-leader/set-key "g" 'magit-status)
+  (evil-leader/set-key "s" 'magit-stage)
+  (evil-leader/set-key "c" 'magit-commit)
+  (evil-leader/set-key "p" 'magit-push)
 
   ;; mapping for helm-find-files
   (evil-leader/set-key "f" 'helm-find-files)
@@ -93,10 +95,8 @@
   (evil-leader/set-key "n" 'display-line-numbers-mode)
 
   ;; open shell buffer
-  (evil-leader/set-key "s" 'multi-vterm-dedicated-toggle)
-
-  ;; highlight thing mode
-  (evil-leader/set-key "t" 'highlight-thing-mode))
+  (evil-leader/set-key "t" 'multi-vterm-dedicated-toggle)
+  )
 
 (use-package evil-commentary
   :ensure t
@@ -114,7 +114,7 @@
 
 ;; when running emacs as a daemon, certain themes fail to load properly.
 ;; this code will check for this and load theme after a frame is created
-(setq my-theme 'spacemacs-dark)
+(setq my-theme 'spacemacs-light)
 
 (defun load-my-theme (frame)
   (select-frame frame)
