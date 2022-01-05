@@ -31,7 +31,7 @@
 
 (when (memq window-system '(mac ns))
   ;; use terminal path in OSX GUI app
-  ;; (exec-path-from-shell-initialize)
+  (exec-path-from-shell-initialize)
   (setq font-backend 'ns)
   )
 
@@ -54,11 +54,20 @@
 (use-package evil
   :ensure t
   :after key-chord
+  :init
+  (setq evil-want-keybinding nil)
   :config
   (evil-mode t)
 
-  (global-undo-tree-mode)
-  (evil-set-undo-system 'undo-tree)
+  (use-package evil-collection
+     :init
+     (evil-collection-init)
+     :ensure t)
+  (if (version< emacs-version "28.0")
+    (progn 
+      (global-undo-tree-mode)
+      (evil-set-undo-system 'undo-tree))
+    (evil-set-undo-system 'undo-redo))
 
   ;; remap the <space> key to :
   (define-key evil-normal-state-map (kbd "SPC") 'evil-ex)
@@ -109,12 +118,15 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Themes/Highlighting
+;; used to install
+; (use-package spacemacs-theme
+;   :ensure t)
 
 (add-to-list 'custom-theme-load-path "~/.emacs.d/themes")
 
 ;; when running emacs as a daemon, certain themes fail to load properly.
 ;; this code will check for this and load theme after a frame is created
-(setq my-theme 'spacemacs-light)
+(setq my-theme 'spacemacs-dark)
 
 (defun load-my-theme (frame)
   (select-frame frame)
@@ -193,7 +205,7 @@
   (set-fonts "Fira Code Retina"
              ;; "Helvetica Neue"
              "Fira Code Retina"
-             14)
+             16)
   ;; for linux
   (set-fonts "Fira Code Retina"
              "Fira Code Retina"
@@ -547,6 +559,7 @@
 ;;;; Suppress minor mode on the mode line
 ;; (require 'diminish)
 (use-package diminish
+  :ensure t
   :config
   (diminish 'flycheck-mode)
   (diminish 'company-mode)
@@ -717,7 +730,9 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Git settings
-(use-package evil-magit
+; (use-package evil-magit
+;   :ensure t)
+(use-package magit
   :ensure t)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
