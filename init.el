@@ -59,10 +59,6 @@
   :config
   (evil-mode t)
 
-  (use-package evil-collection
-     :init
-     (evil-collection-init)
-     :ensure t)
   (if (version< emacs-version "28.0")
     (progn 
       (global-undo-tree-mode)
@@ -75,7 +71,17 @@
   ;; remap the esc key to exit insert mode
   (key-chord-define evil-insert-state-map "jk" 'evil-normal-state)
 
+(use-package evil-collection
+  :ensure t
+  :pin melpa
+  :after (evil magit)
+  :init
+  (evil-collection-init 'magit)
+  (evil-collection-init)
+  )
+
 (use-package evil-leader
+  :after evil
   :ensure t
   :config
   (global-evil-leader-mode)
@@ -108,12 +114,10 @@
   )
 
 (use-package evil-commentary
+  :after evil
   :ensure t
   :diminish evil-commentary-mode
   :config (evil-commentary-mode))
-
-
-;; TODO Try to implement persistent evil-marks
 )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -287,7 +291,7 @@
 (setq-default indent-tabs-mode nil)
 
 ;; default tab size
-(setq-default tab-width 8)
+(setq-default tab-width 4)
 
 ;; default indentation level in cc mode
 (add-hook 'c-mode-common-hook
@@ -523,6 +527,13 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; lsp Mode
+(use-package lsp-mode
+  :ensure t
+  :hook (go-mode . lsp)
+  :commands lsp)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Company Mode
 
 (use-package company
@@ -571,6 +582,12 @@
   (diminish 'eldoc)
   )
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; golang settings
+(use-package go-mode
+  :ensure t
+  ;; :init (add-hook 'go-mode-hook (lambda () (setq tab-width 4)))
+  )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Python settings
@@ -733,7 +750,8 @@
 ; (use-package evil-magit
 ;   :ensure t)
 (use-package magit
-  :ensure t)
+  :ensure t
+  :pin melpa)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Yaml
@@ -783,8 +801,6 @@
 ;; Local Variables:
 ;; byte-compile-warnings: (not free-vars)
 ;; End:
-
-(server-start)
 
 (provide 'init)
 ;;; init.el ends here
