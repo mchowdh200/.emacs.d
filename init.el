@@ -1,4 +1,4 @@
-
+;; TODO there is no rhyme or reason to my organization of this file... do something about that
 (setq load-prefer-newer 1)
 
 ;; change default garbage collection threshold to something higher
@@ -154,9 +154,11 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Font Settings
+;; TODO make the scaleing factors params
+(use-package all-the-icons
+  :ensure t)
 
-
-(defun set-fonts (basic-font header-font base-size)
+(defun set-font-properties (basic-font header-font base-size)
   ;; Basic font
   (setq default-frame-alist
         `((font . ,(concat basic-font "-" (number-to-string base-size)))))
@@ -182,7 +184,7 @@
   ;; Change font of function declarations
   (set-face-attribute
    'font-lock-function-name-face (selected-frame)
-   :font (concat header-font "-" (number-to-string (fround (* base-size 1.2))))
+   ;; :font (concat header-font "-" (number-to-string (fround (* base-size 1.2))))
    :weight 'bold
    :slant 'oblique
    :underline nil)
@@ -190,7 +192,7 @@
   ;; Change font of type declarations
   (set-face-attribute
    'font-lock-type-face (selected-frame)
-   :font (concat header-font "-" (number-to-string (fround (* base-size 1.4))))
+   ;; :font (concat header-font "-" (number-to-string (fround (* base-size 1.4))))
    :weight 'bold
    :slant 'oblique
    :underline nil)
@@ -200,20 +202,14 @@
    'font-lock-warning-face (selected-frame)
    :weight 'bold
    :underline nil)
-
 )
 
 ;; Apply font settings
 (if (memq window-system '(mac ns))
-  ;; for macs
-  (set-fonts "Fira Code Retina"
-             ;; "Helvetica Neue"
-             "Fira Code Retina"
-             16)
-  ;; for linux
-  (set-fonts "Fira Code Retina"
-             "Fira Code Retina"
-             13))
+    ;; for macs
+    (set-font-properties "Fira Code Retina" "Fira Code Retina" 16)
+    ;; for linux
+    (set-font-properties "Fira Code Retina" "Fira Code Retina" 13))
 
 
 
@@ -264,7 +260,6 @@
 
 (setq mouse-wheel-scroll-amount '(2 ((shift) .2) ((control) . nil)))
 (setq mouse-wheel-progressive-speed nil)
-
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -409,91 +404,28 @@
   :ensure t)
 
 
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Custom Keywords
-;;; prog-mode keywords
+;;; Custom Keywords/Patterns
 (add-hook 'prog-mode-hook
-          (lambda ()
-            (font-lock-add-keywords
-             nil
-             '(("\\<\\(TODO\\|DONE\\)" 1 font-lock-warning-face prepend
-                )))))
+          (lambda () (font-lock-add-keywords
+             nil '(("\\<\\(TODO\\|DONE\\)" 1 font-lock-warning-face prepend)))))
 
-;;; c-like language keywords
-(add-hook 'c-mode-common-hook
-          (lambda ()
-            (font-lock-add-keywords
-             nil
-             '(("^/// \\(.*\\)" 1 'header-1-face prepend)
-               ("^\\s-+/// \\(.*\\)" 1 'header-2-face prepend)
-               ))))
-
-;;; elisp keywords
-(add-hook 'emacs-lisp-mode-hook
-          (lambda ()
-            (font-lock-add-keywords
-             nil
-             '(("^;;; \\(.*\\)" 1 'header-1-face prepend)
-               ("^\\s-+;;; \\(.*\\)" 1 'header-2-face prepend)
-               ("^;;;; \\(.*\\)" 1 'header-2-face prepend)
-               ))))
-
-;;; Haskell keywords
-(add-hook 'haskell-mode-hook
-          (lambda ()
-            (font-lock-add-keywords
-             nil
-             '(("^--- \\(.*\\)" 1 'header-1-face prepend)
-               ("^\\s-+--- \\(.*\\)" 1 'header-2-face prepend)
-               ("^---- \\(.*\\)" 1 'header-2-face prepend)
-               ))))
-
-;;; LaTeX keywords
-(add-hook 'LaTeX-mode-hook
-          (lambda ()
-            (font-lock-add-keywords
-             nil
-             '(("^%% \\(.*\\)" 1 'header-1-face prepend)
-               ("^\\s-+%% \\(.*\\)" 1 'header-2-face prepend)
-               ("^%%% \\(.*\\)" 1 'header-2-face prepend)
-               ))))
-
-;;; MATLAB keywords
-(add-hook 'matlab-mode-hook
-          (lambda ()
-            (font-lock-add-keywords
-             nil
-             '(("^%% \\(.*\\)" 1 'header-1-face prepend)
-               ("^\\s-+%% \\(.*\\)" 1 'header-2-face prepend)
-               ("^%%% \\(.*\\)" 1 'header-2-face prepend)
-               ("^\\s-+%%% \\(.*\\)" 1 'header-2-face prepend)
-               ))))
-
-;;; python keywords
-(add-hook 'python-mode-hook
-          (lambda ()
-            (font-lock-add-keywords
-             nil
-             '(("^## \\(.*\\)" 1 'header-1-face prepend)
-               ("^\\s-+## \\(.*\\)" 1 'header-2-face prepend)
-               ("^### \\(.*\\)" 1 'header-2-face prepend)
-               ("^\\s-+### \\(.*\\)" 1 'header-2-face prepend)
-               ;;("^class\\s-+\\(.*\\:\\)" 1 'header-2-face prepend)
-               ))))
-
-;;; shell keywords
-(add-hook 'sh-mode-hook
-          (lambda ()
-            (font-lock-add-keywords
-             nil
-             '(("^## \\(.*\\)" 1 'header-1-face prepend)
-               ("^\\s-+## \\(.*\\)" 1 'header-2-face prepend)
-               ("^### \\(.*\\)" 1 'header-2-face prepend)
-               ("^\\s-+### \\(.*\\)" 1 'header-2-face prepend)
-               ))))
-
+;;;; Header style comments
+(defun match-comment-headers (c h)
+  (font-lock-add-keywords nil
+   `((,(format "^%s%s \\(.*\\)" c h) 1 'header-1-face prepend)
+     (,(format "^%s%s%s \\(.*\\)" c h h) 1 'header-2-face prepend)
+     (,(format "^\\s-+%s%s \\(.*\\)" c h ) 1 'header-2-face prepend)
+     (,(format "^\\s-+%s%s%s \\(.*\\)" c h h) 1 'header-2-face prepend)
+     )))
+(add-hook 'c-mode-common-hook (lambda () (match-comment-headers "//" "/")))
+(add-hook 'emacs-lisp-mode-hook (lambda () (match-comment-headers ";;" ";")))
+(add-hook 'go-mode-hook (lambda () (match-comment-headers "//" "/")))
+(add-hook 'haskell-mode-hook (lambda () (match-comment-headers "--" "-")))
+(add-hook 'LaTeX-mode-hook (lambda () (match-comment-headers "%%" "%")))
+(add-hook 'matlab-mode-hook (lambda () (match-comment-headers "%%" "%")))
+(add-hook 'python-mode-hook (lambda () (match-comment-headers "#" "#")))
+(add-hook 'sh-mode-hook (lambda () (match-comment-headers "#" "#")))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; flycheck Settings
@@ -530,8 +462,13 @@
 ;;; lsp Mode
 (use-package lsp-mode
   :ensure t
-  :hook (go-mode . lsp)
+  :hook
+  (go-mode . lsp)
+  (c-mode . lsp)
+  (c++-mode . lsp)
   :commands lsp)
+(use-package lsp-ui
+  :ensure t)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Company Mode
@@ -562,6 +499,10 @@
 (add-hook 'compilation-mode-hook
           '(lambda ()
              (local-set-key (kbd "<f5>") 'kill-compilation)))
+
+(use-package cmake-mode
+  :ensure t)
+
 
 
 
