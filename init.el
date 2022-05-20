@@ -29,9 +29,9 @@
 (package-initialize)
 
 
+(exec-path-from-shell-initialize)
 (when (memq window-system '(mac ns))
   ;; use terminal path in OSX GUI app
-  (exec-path-from-shell-initialize)
   (setq font-backend 'ns)
   )
 
@@ -122,9 +122,6 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Themes/Highlighting
-;; used to install
-; (use-package spacemacs-theme
-;   :ensure t)
 
 (add-to-list 'custom-theme-load-path "~/.emacs.d/themes")
 
@@ -159,6 +156,8 @@
   :ensure t)
 
 (defun set-font-properties (basic-font header-font base-size)
+  (setq-default line-spacing 0.075)
+
   ;; Basic font
   (setq default-frame-alist
         `((font . ,(concat basic-font "-" (number-to-string base-size)))))
@@ -209,7 +208,7 @@
     ;; for macs
     (set-font-properties "Fira Code Retina" "Fira Code Retina" 16)
     ;; for linux
-    (set-font-properties "Fira Code Retina" "Fira Code Retina" 13))
+    (set-font-properties "Comic Code Ligatures" "Comic Code Ligatures" 14))
 
 
 
@@ -466,9 +465,12 @@
   (go-mode . lsp)
   (c-mode . lsp)
   (c++-mode . lsp)
-  :commands lsp)
+  (python-mode . lsp)
+  :commands lsp
+  :config (setq lsp-headerline-breadcrumb-enable nil))
 (use-package lsp-ui
   :ensure t)
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Company Mode
@@ -521,6 +523,9 @@
   (diminish 'highlight-thing-mode)
   (diminish 'yas-minor-mode)
   (diminish 'eldoc)
+  (diminish 'projectile-mode)
+  (diminish 'evil-collection-unimpaired-mode)
+  (diminish 'lsp-mode)
   )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -533,6 +538,10 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Python settings
 
+(use-package lsp-pyright
+  :ensure t)
+
+
 (setq python-shell-interpreter "python3")
 
 ;; custom compile settings for python
@@ -541,15 +550,15 @@
                    (set (make-local-variable 'compile-command)
                         (concat "python3 "
                                 (file-relative-name buffer-file-name)))))
-(use-package elpy
-  :ensure t
-  :init
-  (elpy-enable)
-  :config
-  (when (load "flycheck" t t)
-    (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
-    (add-hook 'elpy-mode-hook 'flycheck-mode))
-  )
+;; (use-package elpy
+;;   :ensure t
+;;   :init
+;;   (elpy-enable)
+;;   :config
+;;   (when (load "flycheck" t t)
+;;     (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
+;;     (add-hook 'elpy-mode-hook 'flycheck-mode))
+;;   )
 
 
 
@@ -558,17 +567,9 @@
 (use-package conda
   :ensure t
   :config
-  (setq conda-anaconda-home "~/anaconda3/")
+  (setq conda-anaconda-home (expand-file-name "~/anaconda3/")) ;; TODO make robust to mini/anaconda
+  (setq conda-env-home-directory (expand-file-name "~/anaconda3/")) ;; TODO make robust to mini/anaconda
   (conda-env-initialize-interactive-shells))
-
-;; ipython notebooks
-(use-package ein
-  :ensure t)
-
-;; sort python imports
-(use-package py-isort
-  :ensure t
-  :diminish t)
 
 ;; snakemake syntax
 (use-package snakemake-mode
